@@ -1,5 +1,7 @@
 package com.pratham.RatingManagementSystem.controller;
 
+import com.pratham.RatingManagementSystem.dto.RatingResponse;
+import com.pratham.RatingManagementSystem.dto.SimpleUserResponse;
 import com.pratham.RatingManagementSystem.model.Rating;
 import com.pratham.RatingManagementSystem.repository.RatingRepository;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +22,24 @@ public class AdminController {
     }
 
     @GetMapping("/all-ratings")
-    public List<Rating> getAllRatings() {
-        return ratingRepository.findAll();
+    public List<RatingResponse> getAllRatings() {
+        return ratingRepository.findAll().stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    @GetMapping("/filter")
+    public List<RatingResponse> filterRatings(
+            @RequestParam(required = false) Integer ambiance,
+            @RequestParam(required = false) Integer food,
+            @RequestParam(required = false) Integer service,
+            @RequestParam(required = false) Integer cleanliness,
+            @RequestParam(required = false) Integer drinks
+    ) {
+        return ratingRepository.filterRatings(ambiance, food, service, cleanliness, drinks)
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @GetMapping("/report")
@@ -45,20 +63,23 @@ public class AdminController {
         );
     }
 
-    @GetMapping("/filter")
-    public List<Rating> filterRatings(
-            @RequestParam(required = false) Integer ambiance,
-            @RequestParam(required = false) Integer food,
-            @RequestParam(required = false) Integer service,
-            @RequestParam(required = false) Integer cleanliness,
-            @RequestParam(required = false) Integer drinks
-    ) {
-        return ratingRepository.findAll().stream()
-                .filter(r -> ambiance == null || r.getAmbiance() == ambiance)
-                .filter(r -> food == null || r.getFood() == food)
-                .filter(r -> service == null || r.getService() == service)
-                .filter(r -> cleanliness == null || r.getCleanliness() == cleanliness)
-                .filter(r -> drinks == null || r.getDrinks() == drinks)
-                .collect(Collectors.toList());
+    private RatingResponse toDto(Rating rating) {
+        RatingResponse dto = new RatingResponse();
+        dto.id = rating.getId();
+
+        SimpleUserResponse userDto = new SimpleUserResponse();
+        userDto.id = rating.getUser().getId();
+        userDto.name = rating.getUser().getName();
+        userDto.email = rating.getUser().getEmail();
+        userDto.role = rating.getUser().getRole().name();
+
+        dto.user = userDto;
+        dto.ambiance = rating.getAmbiance();
+        dto.food = rating.getFood();
+        dto.service = rating.getService();
+        dto.cleanliness = rating.getCleanliness();
+        dto.drinks = rating.getDrinks();
+
+        return dto;
     }
 }

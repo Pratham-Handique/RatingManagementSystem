@@ -36,7 +36,7 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public String register(RegisterRequest request) {
+    public void register(RegisterRequest request) {
         if (userRepository.findByEmail(request.email).isPresent()) {
             throw new RuntimeException("Email already registered");
         }
@@ -59,7 +59,7 @@ public class UserService implements UserDetailsService {
         user.setRole(role);
         userRepository.save(user);
 
-        return jwtUtil.generateToken(user.getEmail(), user.getRole());
+        //return jwtUtil.generateToken(user.getEmail(), user.getRole());
     }
 
     public String login(AuthRequest request) {
